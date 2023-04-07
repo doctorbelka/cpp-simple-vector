@@ -8,8 +8,7 @@ public:
 
     ArrayPtr() = default;
 
-    explicit ArrayPtr(size_t size) {
-    raw_ptr_= (size==0) ? nullptr : (new Type[size]);
+   explicit ArrayPtr(size_t size) : raw_ptr_((size==0) ? nullptr : (new Type[size])) {
     }
 
     explicit ArrayPtr(Type* raw_ptr) noexcept : raw_ptr_(raw_ptr) {
@@ -23,7 +22,8 @@ public:
 
     ArrayPtr& operator=(const ArrayPtr&) = delete;
     
-    ArrayPtr(ArrayPtr&& raw_ptr) : raw_ptr_(std::move(raw_ptr)){
+    ArrayPtr(ArrayPtr&& raw_ptr) {
+    swap(raw_ptr);
     }
     
     ArrayPtr& operator=(ArrayPtr&& raw_ptr){
