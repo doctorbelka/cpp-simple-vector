@@ -27,43 +27,31 @@ public:
 
     SimpleVector() noexcept = default;
 
-    explicit SimpleVector(size_t size) : size_(size), capacity_(size){
-        ArrayPtr<Type> numbers(size);
-        std::generate(numbers.Get(), numbers.Get() + size, []() {return Type{};});
-        elements_.swap(numbers);
+    explicit SimpleVector(size_t size) : elements_(size), size_(size), capacity_(size){
+        std::generate(elements_.Get(), elements_.Get() + size, []() {return Type{};});
     }
     
-    SimpleVector(const ReserveProxyObj& obj) :  size_(0), capacity_(obj.cap){
-     ArrayPtr<Type> numbers(obj.cap);   
-        elements_.swap(numbers);
+    SimpleVector(const ReserveProxyObj& obj) :  elements_(obj.cap), size_(0), capacity_(obj.cap){
     }
     
-    SimpleVector (const SimpleVector& other) : size_(other.size_), capacity_(other.capacity_){
-    ArrayPtr<Type> numbers(other.capacity_);
-    std::copy(other.begin(),other.end(),numbers.Get());
-    elements_.swap(numbers);
+    SimpleVector (const SimpleVector& other) : elements_(other.capacity_), size_(other.size_), capacity_(other.capacity_){
+    std::copy(other.begin(),other.end(),elements_.Get());
     }
     
     SimpleVector(SimpleVector&& other){
     swap(other);
     }
     
-    SimpleVector(size_t size, const Type& value) : size_(size), capacity_(size) {
-       ArrayPtr<Type> numbers(size);
-       std::fill(numbers.Get(),numbers.Get()+size, value);
-       elements_.swap(numbers);
+    SimpleVector(size_t size, const Type& value) : elements_(size), size_(size), capacity_(size) {
+       std::fill(elements_.Get(),elements_.Get()+size, value);
     }
     
-    SimpleVector(std::initializer_list<Type> init) : size_(init.size()), capacity_(init.size()) {
-        ArrayPtr<Type> numbers(init.size());
-       std::copy(init.begin(),init.end(),numbers.Get());
-        elements_.swap(numbers);
+    SimpleVector(std::initializer_list<Type> init) : elements_(init.size()), size_(init.size()), capacity_(init.size()) {
+       std::copy(init.begin(),init.end(),elements_.Get());
     }
     
-    SimpleVector(std::initializer_list<Type>&& init) : size_(init.size()), capacity_(init.size()) {
-        ArrayPtr<Type> numbers(init.size());
-       std::move(init.begin(),init.end(),numbers.Get());
-        elements_.swap(numbers);
+    SimpleVector(std::initializer_list<Type>&& init) : elements_(init.size()), size_(init.size()), capacity_(init.size()) {
+       std::move(init.begin(),init.end(),elements_.Get());
     }
     
     SimpleVector& operator= (const SimpleVector& rhs){
@@ -78,7 +66,7 @@ public:
     swap(rhs);
     return *this;
     }
-    
+  
     void Reserve(size_t new_capacity){
     if (new_capacity>capacity_){
     capacity_=new_capacity;
@@ -89,31 +77,21 @@ public:
     }
     
     void PushBack(const Type& item) {
-        if (size_==capacity_) {
-        size_t new_capacity = capacity_ == 0 ? 1 : 2 * capacity_;
-        Reserve(new_capacity);
-        ++size_;
-        *(begin()+size_-1)=item;
-        return;
-        }
-        if (size_<capacity_){
-        *(end())=item;
-        ++size_;
-        }
+     if (size_==capacity_) { 
+        size_t new_capacity = capacity_ == 0 ? 1 : 2 * capacity_; 
+        Reserve(new_capacity); 
+        } 
+        *(end())=item; 
+        ++size_;    
     }
     
     void PushBack(Type&& item) {
-        if (size_==capacity_) {
-        size_t new_capacity = capacity_ == 0 ? 1 : 2 * capacity_;
-        Reserve(new_capacity);
-        ++size_;
-        *(begin()+size_-1)=std::move(item);
-        return;
-        }
-        if (size_<capacity_){
-        *(end())=std::move(item);
-        ++size_;
-        }
+     if (size_==capacity_) { 
+        size_t new_capacity = capacity_ == 0 ? 1 : 2 * capacity_; 
+        Reserve(new_capacity); 
+        } 
+        *(end())=std::move(item); 
+        ++size_; 
     }
     
     Iterator Insert(ConstIterator pos, const Type& value) {
@@ -129,7 +107,7 @@ public:
         elements_[index] = std::move(value);
         return begin() + index;
     }
-     
+      
     void PopBack() noexcept {
         assert(!IsEmpty());
         --size_;
@@ -226,17 +204,16 @@ public:
     void ForInsert(ConstIterator pos, size_t index){
         if (size_ < capacity_) {
             if (pos == end()) {
-            } else {
-                std::move_backward(elements_.Get() + index, elements_.Get() + size_, elements_.Get() + size_ + 1); 
-            }
             ++size_;
+            return;
+            } 
         } else {
             size_t new_capacity = capacity_ == 0 ? 1 : 2 * capacity_;
             Reserve(new_capacity);
-            std::move(elements_.Get() + index, elements_.Get() + size_, elements_.Get() + index + 1);
             capacity_ = new_capacity;
-            ++size_;
         }
+        std::move_backward(elements_.Get() + index, elements_.Get() + size_, elements_.Get() + size_ + 1);
+        ++size_;
     }
 };
 
